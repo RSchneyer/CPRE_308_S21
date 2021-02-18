@@ -5,27 +5,22 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
+#include "ANSI-color-codes.h"
+
+
 #define PROMPT_FLAG "-p"
-#define DEFAULT_PROMPT "308sh> "
+#define DEFAULT_PROMPT "308sh>"
 #define TOKEN_DELIMITERS " \t\r\n\a"
 #define BUFFSIZE 4096
 
+int shell_exit(char **arg_arr);
+int shell_pid(char **arg_arr);
+int shell_ppid(char **arg_arr);
+int shell_cd(char **arg_arr);
+int shell_pwd(char **arg_arr);
 
-int shell_cd(char **arg_arr){
-    if(arg_arr[1] == NULL){
-        fprintf(stderr,"308sh: expected argument to \"cd\"\n");
-    }
-    else {
-        if(chdir(arg_arr[1])!=0){
-            perror("308sh");
-        }
-    }
-    return 1;
-}
-
-int shell_execute(char **arg_arr){
+//executes non-builtin command
+int shell_exe(char **arg_arr){
     pid_t pid, wpid;
     int status;
 
@@ -40,7 +35,7 @@ int shell_execute(char **arg_arr){
         perror("308sh");
     }
     else {
-        printf("[%ld] %s\n", pid, arg_arr[0]);
+        printf("\e[0;32m[%d] %s\e[0m\n", pid, arg_arr[0]);
         do
         {
             wpid = waitpid(pid, &status, WUNTRACED);
@@ -49,6 +44,17 @@ int shell_execute(char **arg_arr){
     }
     return 1;
 } 
+
+int shell_command(char **arg_arr){
+    char *cmd = arg_arr[0];
+    if(arg_arr[0] == NULL){
+        return 1;
+    }
+    if(strcmp(cmd, "cd")==0){return shell_cd(arg_arr);}
+    if(strcmp(cmd, "exit")==0){return shell_exit(arg_arr);}
+    if(strcmp(cmd, "pwd")==0){return shell_pwd(arg_arr);}
+    return shell_exe(arg_arr);
+}
 
 char **shell_parse_line(char *line){
     int buff_size, pos = 0;
@@ -70,7 +76,6 @@ char **shell_parse_line(char *line){
     return token_array;
 
 }
-
 
 char *shell_read_line(){
     char *line = NULL;
@@ -100,10 +105,10 @@ void shell_loop(char *prompt){
     }
 
     do {
-        printf(prompt);
-        curr_line   = shell_read_line();
+        printf("%s ",prompt);
+        curr_line   = shell_read_line(); //Read the 
         curr_args   = shell_parse_line(curr_line);
-        curr_status = shell_execute(curr_args);
+        curr_status = shell_command(curr_args);
     } while (curr_status);
 }
 
