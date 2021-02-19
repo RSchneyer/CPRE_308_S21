@@ -23,11 +23,12 @@ int shell_pwd(char **arg_arr);
 int shell_exe(char **arg_arr){
     pid_t pid, wpid;
     int status;
-
+    char *cmd = arg_arr[0];
+    char *exit_color;
     pid = fork();
     if(pid == 0){
-        if(execvp(arg_arr[0], arg_arr) == -1){
-            perror("308sh");
+        if(execvp(cmd, arg_arr) == -1){
+            printf("%s308sh: Command \"%s\" not recognized.%s\n",RED,arg_arr[0],RESET);
         }
         exit(1);
     }
@@ -35,24 +36,33 @@ int shell_exe(char **arg_arr){
         perror("308sh");
     }
     else {
-        printf("\e[0;32m[%d] %s\e[0m\n", pid, arg_arr[0]);
+        printf("%s[%d] %s%s\n",GRN, pid, arg_arr[0], RESET);
         do
         {
             wpid = waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
         
     }
+    exit_color = (status == 0)?GRN:RED;
+    printf("%s[%d] %s Exit %d%s\n",exit_color, pid, cmd, status, RESET);
     return 1;
 } 
 
 int shell_command(char **arg_arr){
     char *cmd = arg_arr[0];
+    
     if(arg_arr[0] == NULL){
         return 1;
     }
-    if(strcmp(cmd, "cd")==0){return shell_cd(arg_arr);}
+
+    // I know it's ugly, but whatever
     if(strcmp(cmd, "exit")==0){return shell_exit(arg_arr);}
+    if(strcmp(cmd, "cd")==0){return shell_cd(arg_arr);}
+    if(strcmp(cmd, "pid")==0){return shell_pid(arg_arr);}
+    if(strcmp(cmd, "ppid")==0){return shell_ppid(arg_arr);}
     if(strcmp(cmd, "pwd")==0){return shell_pwd(arg_arr);}
+
+    // Input wasn't a builtin command
     return shell_exe(arg_arr);
 }
 
@@ -61,18 +71,24 @@ char **shell_parse_line(char *line){
     char **token_array = malloc(buff_size * sizeof(char*));
     char *curr_token;
 
+    // Get the first token from the line, based on the delimiters constant
     curr_token = strtok(line, TOKEN_DELIMITERS);
     while(curr_token != NULL){
+        //Store the current token in token_array at index pos
         token_array[pos] = curr_token;
         pos++;
 
+        //Update the size of token_array in case pos gets larger than the BUFFSIZE constant
         if(pos >= BUFFSIZE){
             buff_size += BUFFSIZE;
             token_array = realloc(token_array, buff_size * sizeof(char*));
         }
+        // From the man page:
+        // "In each subsequent call that should parse the same string, str must be NULL."
         curr_token = strtok(NULL, TOKEN_DELIMITERS);
     }
-    token_array[pos] = NULL;
+    //Set the last token in the token array to the terminating null byte
+    token_array[pos] = '\0';
     return token_array;
 
 }
