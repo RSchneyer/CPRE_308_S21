@@ -20,6 +20,10 @@ char *get_prompt(int arg_count, char **arg_arr);
 char **parse_input(char *usr_input, int *arg_count);
 int shell_non_builtin(char **arg_arr, int arg_count);
 
+typedef struct proc {int pid; char *cmd} Process;
+
+
+
 int main(int argc, char **argv){
     //Set the prompt
     char *desired_prompt = get_prompt(argc, argv);
@@ -94,8 +98,7 @@ int shell_non_builtin(char **arg_arr, int bkgnd){
 
     int wait_pid = waitpid(-1, &status, WNOHANG);
     if(wait_pid>0){
-
-        printf("%s[%d] Exit %d%s\n",WHT,wait_pid,status,RESET);
+        printf("%s[%d] %s Exit %d%s\n",WHT,wait_pid,cmd,status,RESET);
     }
     child_pid = fork();
     if(child_pid == 0){ // We're in the child process
