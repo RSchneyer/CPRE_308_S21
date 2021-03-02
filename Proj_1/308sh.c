@@ -27,6 +27,7 @@ int shell_exe(char **arg_arr){
     char *exit_color;
     pid = fork();
     if(pid == 0){
+        printf("%s\n",cmd );
         if(execvp(cmd, arg_arr) == -1){
             printf("%s308sh: Command \"%s\" not recognized.%s\n",RED,arg_arr[0],RESET);
         }
@@ -87,7 +88,7 @@ char **shell_parse_line(char *line){
         // "In each subsequent call that should parse the same string, str must be NULL."
         curr_token = strtok(NULL, TOKEN_DELIMITERS);
     }
-    //Set the last token in the token array to the terminating null byte
+    // Add the terminating null byte to the end of the token array, since our loop won't grab it
     token_array[pos] = '\0';
     return token_array;
 
