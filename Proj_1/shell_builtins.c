@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <limits.h>
-#define BUFFSIZE 4096
+
 
 // Function that handles the exit command
 // Returns 0, which is a successful exit code
