@@ -10,7 +10,7 @@
 #include <string.h>
 
 #define NUM_PROCESSES 20
-#define NUM_SCHEDULERS 1
+#define NUM_SCHEDULERS 2
 
 /* Custom defines for ease of reading*/
 #define FINISHED 1
@@ -55,8 +55,8 @@ int main() {
   scheduler schedulers[NUM_SCHEDULERS];
   schedulers[0].func = first_come_first_served;
   strncpy(schedulers[0].name, "First come first served", SCHEDULER_NAME_LEN);
-  // schedulers[1].func = shortest_remaining_time;
-  // strncpy(schedulers[1].name, "Shortest remaining time", SCHEDULER_NAME_LEN);
+  schedulers[1].func = shortest_remaining_time;
+  strncpy(schedulers[1].name, "Shortest remaining time", SCHEDULER_NAME_LEN);
   // schedulers[2].func = round_robin;
   // strncpy(schedulers[2].name, "Round robin", SCHEDULER_NAME_LEN);
   // schedulers[3].func = round_robin_priority;
@@ -187,12 +187,23 @@ int first_come_first_served(const process proc[], int t)
     }
   }
   if(next_to_run_index >-1){return next_to_run_index;}
-  /* TODO: Implement scheduling algorithm here */
   return -1;
 }
 
 int shortest_remaining_time(const process proc[], int t)
 {
+  int y;
+  int shortest_time_remaining = 40;
+  int next_to_run_index = -1;
+  for(y=0;y<NUM_PROCESSES;y++){
+    if((proc[y].finished!=FINISHED) && (proc[y].arrivaltime <=t)){
+      if(proc[y].remainingtime<shortest_time_remaining){
+        shortest_time_remaining = proc[y].remainingtime;
+        next_to_run_index = y;
+      }
+    }
+  }
+  if(next_to_run_index>-1){return next_to_run_index;}
   /* TODO: Implement scheduling algorithm here */
   return -1;
 }
